@@ -1,6 +1,9 @@
 #include "skyline.hpp"
 
 #include <algorithm>
+#include <limits>
+#include <numeric>
+#include <random>
 #include <stdexcept>
 
 #include <iostream>
@@ -55,18 +58,18 @@ bool lessLex(Oracle& oracle, item_index i, item_index j, double tolerance) {
     }
     item_dimension gt = 0;
     for (; gt < oracle.itemDimension(); gt++) {
-        // The greater-than comparison is performed here.
-        if (!less(oracle, i, j, gt, tolerance/2)) {
+        // i_gt > j_gt?
+        if (less(oracle, j, i, gt, tolerance/2)) {
             break;
         }
     }
-    return gt == oracle.itemDimension() || lt <= gt;
+    return (gt == oracle.itemDimension()) || (lt <= gt);
 }
 
 bool dominatedBy(Oracle& oracle, item_index i, item_index j, double tolerance) {
     for (item_dimension k = 0; k < oracle.itemDimension(); k++) {
         // If item i is greater than item j on some dimension, then i is not dominated by j.
-        if (!less(oracle, i, j, k, tolerance)) {
+        if (less(oracle, j, i, k, tolerance)) {
             return false;
         }
     }
@@ -84,14 +87,14 @@ bool dominatedByAny(Oracle& oracle, item_index i, const ItemIndexSeq& c, double 
 
 bool lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance) {
     if (dominatedByAny(oracle, i, c, tolerance)) {
-        // Item i doesn't satisfy the predicate, and the case for item j is not known: item i is less than item j.
+        // Item i is dominated, and the case for item j is not known: item i is less than item j anyway.
         return true;
     }
     if (dominatedByAny(oracle, j, c, tolerance)) {
-        // Item i satisfies the predicate, but item j doesn't: item i is greater than item j.
+        // Item i is not dominated, but item j is: item i is greater than item j.
         return false;
     }
-    // Both items i and j satisfy the predicate: the result is determined by lexicographic order.
+    // Both items i and j are not dominated: the result is determined by lexicographic ordering.
     return lessLex(oracle, i, j, tolerance);
 }
 
@@ -134,6 +137,10 @@ item_index maxLexNotDominated(Oracle& oracle, const ItemIndexSeq& s, const ItemI
     }
     // The last group may be smaller.
     smax[i] = max4LexNotDominated(oracle, s, 4*i, s.size() - 4*i, c, tolerance);
+    // for (auto& x : smax) {
+    //     std::cout << "smax " << x << std::endl;
+    // }
+    // std::cout << std::endl;
     return maxLexNotDominated(oracle, smax, c, tolerance);
 }
 
@@ -141,6 +148,7 @@ void skySample(Oracle& oracle, const ItemIndexSeq& s, unsigned long n, double to
     result.clear();
     for (unsigned long i = 0; i < n; i++) {
         item_index z = maxLexNotDominated(oracle, s, result, tolerance/n);
+        std::cout << "z: " << z << std::endl << std::endl;
         // TODO: Use set instead of vector for the result to reduce cost of membership testing?
         if (std::find(result.begin(), result.end(), z) != result.end()) {
             return;

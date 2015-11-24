@@ -97,6 +97,11 @@ private:
 
 /**
  * Is item i is less than item j on a dimension k?
+ *
+ * To check if (i_k < j_k), use less(i, j, k, tolerance).
+ * To check if (i_k > j_k), use less(j, i, k, tolerance).
+ * To check if (i_k <= j_k), use !less(j, i, k, tolerance).
+ * To check if (i_k >= j_k), use !less(i, j, k, tolerance).
  */
 bool less(Oracle& oracle, item_index i, item_index j, item_dimension k, double tolerance);
 
@@ -157,7 +162,7 @@ void skyline(Oracle& oracle, const ItemIndexSeq& s, double tolerance, ItemIndexS
 void fullSkyline(Oracle& oracle, double tolerance, ItemIndexSeq& result);
 
 /**
- * Compute noisless skyline.
+ * Compute noisless skyline with naive nested loops algorithm.
  */
 void noislessSkyline(const Dataset& dataset, ItemIndexSeq& result);
 
