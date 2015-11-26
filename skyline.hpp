@@ -29,12 +29,12 @@ typedef int ternary;
 enum {
     /** Representation of non-existent item index. */
     NULL_ITEM_INDEX = std::numeric_limits<item_index>::max(),
-    /** FALSE in the ternary logic. */
-    TERNARY_FALSE = -1,
     /** UNKNOWN in the ternary logic. */
     TERNARY_UNKNOWN = 0,
+    /** FALSE in the ternary logic. */
+    TERNARY_FALSE = 1,
     /** TRUE in the ternary logic. */
-    TERNARY_TRUE = +1,
+    TERNARY_TRUE = 2,
 };
 
 /**
