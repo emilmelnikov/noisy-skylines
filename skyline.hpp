@@ -1,38 +1,41 @@
 #ifndef SKYLINE_HPP_
 #define SKYLINE_HPP_
 
+#include <limits>
 #include <random>
 #include <vector>
 
-/**
- * Type of an individual component in an item.
- */
-typedef int item_attribute;
+/** Type of the individual component in an item. */
+typedef double item_attribute;
 
-/**
- * An item in multi-dimensional space.
- */
+/** Item in a multi-dimensional space. */
 typedef std::vector<item_attribute> Item;
 
-/**
- * Dimension type for an item.
- */
+/** Dimension inedx for an item. */
 typedef Item::size_type item_dimension;
 
-/**
- * A set of values for which the skyline should be computed.
- */
+/** A set of values for which the skyline should be computed. */
 typedef std::vector<Item> Dataset;
 
-/**
- * Index type for a dataset.
- */
+/** Index in a dataset. */
 typedef Dataset::size_type item_index;
 
-/**
- * A set of item indices, a subset of items in the dataset.
- */
+/** A set of item indices, the subset of items in the dataset. */
 typedef std::vector<item_index> ItemIndexSeq;
+
+/** Value in a ternary (strong Kleene) logic. */
+typedef int ternary;
+
+enum {
+    /** Representation of non-existent item index. */
+    NULL_ITEM_INDEX = std::numeric_limits<item_index>::max(),
+    /** FALSE in the ternary logic. */
+    TERNARY_FALSE = -1,
+    /** UNKNOWN in the ternary logic. */
+    TERNARY_UNKNOWN = 0,
+    /** TRUE in the ternary logic. */
+    TERNARY_TRUE = +1,
+};
 
 /**
  * This class emulates queries to independent noisy oracles.
@@ -122,9 +125,9 @@ bool dominatedBy(Oracle& oracle, item_index i, item_index j, double tolerance);
 bool dominatedByAny(Oracle& oracle, item_index i, const ItemIndexSeq& c, double tolerance);
 
 /**
- * Predicate for lexicagraphic non-dominance total order; used in maxLexNotDominated().
+ * Predicate for lexicographic non-dominance total order; used in maxLexNotDominated().
  */
-bool lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance);
+ternary lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance);
 
 /**
  * The index of the maximum item between item i and item j that is not dominated by any item in c.

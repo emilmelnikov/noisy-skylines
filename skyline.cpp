@@ -85,44 +85,76 @@ bool dominatedByAny(Oracle& oracle, item_index i, const ItemIndexSeq& c, double 
     return false;
 }
 
-bool lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance) {
+ternary lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance) {
     if (dominatedByAny(oracle, i, c, tolerance)) {
-        // Item i is dominated, and the case for item j is not known: item i is less than item j anyway.
-        return true;
+        if (dominatedByAny(oracle, j, c, tolerance)) {
+            // Both items are dominated, there is no ordering for them.
+            return TERNARY_UNKNOWN;
+        } else {
+            // Item i is dominated, item j is NOT dominated: i < j
+            return TERNARY_TRUE;
+        }
+    } else {
+        if (dominatedByAny(oracle, j, c, tolerance)) {
+            // Item i is NOT dominated, item j is dominated: i > j
+            return TERNARY_FALSE;
+        } else {
+            // Both items i and j are not dominated: the result is determined by lexicographic ordering.
+            return lessLex(oracle, i, j, tolerance) ? TERNARY_TRUE : TERNARY_FALSE;
+        }
     }
-    if (dominatedByAny(oracle, j, c, tolerance)) {
-        // Item i is not dominated, but item j is: item i is greater than item j.
-        return false;
-    }
-    // Both items i and j are not dominated: the result is determined by lexicographic ordering.
-    return lessLex(oracle, i, j, tolerance);
 }
 
 item_index max2LexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance) {
-    return lessLexNotDominated(oracle, i, j, c, tolerance) ? j : i;
+    if (i == NULL_ITEM_INDEX) {
+        if (j == NULL_ITEM_INDEX) {
+            return NULL_ITEM_INDEX;
+        } else {
+            return j;
+        }
+    } else {
+        if (j == NULL_ITEM_INDEX) {
+            return i;
+        } else {
+            switch (lessLexNotDominated(oracle, i, j, c, tolerance)) {
+                case TERNARY_TRUE: {
+                    return j;
+                }
+                case TERNARY_FALSE: {
+                    return i;
+                }
+                case TERNARY_UNKNOWN: {
+                    return NULL_ITEM_INDEX;
+                }
+                default: {
+                    throw std::logic_error("Invalid value for ternary type");
+                }
+            }
+        }
+    }
 }
 
 item_index max4LexNotDominated(Oracle& oracle, const ItemIndexSeq& s,
         ItemIndexSeq::size_type offset, ItemIndexSeq::size_type n, const ItemIndexSeq& c, double tolerance) {
     switch (n) {
-    case 1: {
-        return s[offset];
-    }
-    case 2: {
-        return max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance);
-    }
-    case 3: {
-        item_index max01 = max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance/2);
-        return max2LexNotDominated(oracle, max01, s[offset+2], c, tolerance/2);
-    }
-    case 4: {
-        item_index max01 = max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance/2);
-        item_index max23 = max2LexNotDominated(oracle, s[offset+2], s[offset+3], c, tolerance/2);
-        return max2LexNotDominated(oracle, max01, max23, c, tolerance/2);
-    }
-    default: {
-        throw std::invalid_argument("n is not in range [1..4]");
-    }
+        case 1: {
+            return s[offset];
+        }
+        case 2: {
+            return max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance);
+        }
+        case 3: {
+            item_index max01 = max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance/2);
+            return max2LexNotDominated(oracle, max01, s[offset+2], c, tolerance/2);
+        }
+        case 4: {
+            item_index max01 = max2LexNotDominated(oracle, s[offset], s[offset+1], c, tolerance/2);
+            item_index max23 = max2LexNotDominated(oracle, s[offset+2], s[offset+3], c, tolerance/2);
+            return max2LexNotDominated(oracle, max01, max23, c, tolerance/2);
+        }
+        default: {
+            throw std::invalid_argument("n is not in range [1..4]");
+        }
     }
 }
 
@@ -149,8 +181,7 @@ void skySample(Oracle& oracle, const ItemIndexSeq& s, unsigned long n, double to
     for (unsigned long i = 0; i < n; i++) {
         item_index z = maxLexNotDominated(oracle, s, result, tolerance/n);
         std::cout << "z: " << z << std::endl << std::endl;
-        // TODO: Use set instead of vector for the result to reduce cost of membership testing?
-        if (std::find(result.begin(), result.end(), z) != result.end()) {
+        if (z == NULL_ITEM_INDEX) {
             return;
         }
         result.push_back(z);
