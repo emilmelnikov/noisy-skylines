@@ -29,8 +29,8 @@ def main():
         '-o',
         '--output',
         type=str,
-        help='name of the output file; default is "data.csv"',
-        default='data.csv',
+        help='name of the output file; default is "dataset.csv"',
+        default='dataset.csv',
     )
     ap.add_argument(
         '-f',
@@ -45,6 +45,13 @@ def main():
         type=int,
         help='upper bound of the value range; default is 99',
         default=99,
+    )
+    ap.add_argument(
+        '-c',
+        '--correlation',
+        type=float,
+        help='correlation coefficient for the data points; default is 0.0',
+        default=0.0,
     )
     args = ap.parse_args()
     # Since 'from' is a Python keyword, get an argument with some trickery.

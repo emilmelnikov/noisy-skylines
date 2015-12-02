@@ -16,8 +16,8 @@ def main():
         '-d',
         '--dataset',
         type=str,
-        help='name of the file with the entire dataset; default is "data.csv"',
-        default='data.csv',
+        help='name of the file with the entire dataset; default is "dataset.csv"',
+        default='dataset.csv',
     )
     ap.add_argument(
         '-s',

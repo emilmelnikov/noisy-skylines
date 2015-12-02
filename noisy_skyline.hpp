@@ -1,41 +1,9 @@
-#ifndef SKYLINE_HPP_
-#define SKYLINE_HPP_
+#ifndef NOISY_SKYLINE_HPP_
+#define NOISY_SKYLINE_HPP_
 
-#include <limits>
 #include <random>
-#include <vector>
 
-/** Type of the individual component in an item. */
-typedef double item_attribute;
-
-/** Item in a multi-dimensional space. */
-typedef std::vector<item_attribute> Item;
-
-/** Dimension inedx for an item. */
-typedef Item::size_type item_dimension;
-
-/** A set of values for which the skyline should be computed. */
-typedef std::vector<Item> Dataset;
-
-/** Index in a dataset. */
-typedef Dataset::size_type item_index;
-
-/** A set of item indices, the subset of items in the dataset. */
-typedef std::vector<item_index> ItemIndexSeq;
-
-/** Value in a ternary (strong Kleene) logic. */
-typedef int ternary;
-
-enum {
-    /** Representation of non-existent item index. */
-    NULL_ITEM_INDEX = std::numeric_limits<item_index>::max(),
-    /** UNKNOWN in the ternary logic. */
-    TERNARY_UNKNOWN = 0,
-    /** FALSE in the ternary logic. */
-    TERNARY_FALSE = 1,
-    /** TRUE in the ternary logic. */
-    TERNARY_TRUE = 2,
-};
+#include "types.hpp"
 
 /**
  * This class emulates queries to independent noisy oracles.
@@ -126,11 +94,17 @@ bool dominatedByAny(Oracle& oracle, item_index i, const ItemIndexSeq& c, double 
 
 /**
  * Predicate for lexicographic non-dominance total order; used in maxLexNotDominated().
+ *
+ * @return ternary::true_ if either both items are not dominated and i < j, or i is domianted and j is not;
+ *         ternary::false_ if either both items are not dominated and i > j, or i is not domianted and j is;
+ *         ternary::unknown if both items are dominated.
  */
 ternary lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance);
 
 /**
  * The index of the maximum item between item i and item j that is not dominated by any item in c.
+ *
+ * @return index of the maximal item between i and j, or NULL_ITEM_INDEX if both i and j are dominated.
  */
 item_index max2LexNotDominated(Oracle& oracle, item_index i, item_index j, const ItemIndexSeq& c, double tolerance);
 
@@ -140,12 +114,16 @@ item_index max2LexNotDominated(Oracle& oracle, item_index i, item_index j, const
  *
  * @param n Number of items to consider (counting from the offset); must be in the range [1..4].
  * @param offset The offset in the specified index sequence; must be less than the length of s.
+ *
+ * @return index of the maximal item among s, or NULL_ITEM_INDEX if all of them are domianted.
  */
 item_index max4LexNotDominated(Oracle& oracle, const ItemIndexSeq& s,
         ItemIndexSeq::size_type offset, ItemIndexSeq::size_type n, const ItemIndexSeq& c, double tolerance);
 
 /**
  * The index of the maximum item among the items whose indices are in s that is not dominated by any item in c.
+ *
+ * @return index of the maximal item among s, or NULL_ITEM_INDEX if all of them are domianted.
  */
 item_index maxLexNotDominated(Oracle& oracle, const ItemIndexSeq& s, const ItemIndexSeq& c, double tolerance);
 
@@ -164,9 +142,4 @@ void skyline(Oracle& oracle, const ItemIndexSeq& s, double tolerance, ItemIndexS
  */
 void fullSkyline(Oracle& oracle, double tolerance, ItemIndexSeq& result);
 
-/**
- * Compute noisless skyline with naive nested loops algorithm.
- */
-void noislessSkyline(const Dataset& dataset, ItemIndexSeq& result);
-
-#endif // SKYLINE_HPP_
+#endif // NOISY_SKYLINE_HPP_

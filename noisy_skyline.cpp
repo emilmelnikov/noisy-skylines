@@ -1,12 +1,56 @@
-#include "skyline.hpp"
+#include "noisy_skyline.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 #include <limits>
 #include <numeric>
 #include <random>
 #include <stdexcept>
+#include <string>
 
-#include <iostream>
+#include "types.hpp"
+#include "io.hpp"
+
+int main(int argc, char** argv) {
+    if (argc != 5) {
+        std::cerr << "Usage: " << argv[0] << " input output tolerance error_probability" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    std::ifstream input(argv[1]);
+    std::ofstream output(argv[2]);
+    double tolerance;
+    double errorProbability;
+    try {
+        tolerance = std::stod(argv[3]);
+        errorProbability = std::stod(argv[4]);
+        if (!(0.0 <= tolerance && tolerance < 0.5) || !(0.0 <= errorProbability && errorProbability < 0.5)) {
+            throw std::invalid_argument("out of range");
+        }
+    } catch (std::invalid_argument e) {
+        std::cerr << "tolerance and error_probability must be in range [0.0; 0.5)" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    Dataset dataset;
+    readDataset(input, dataset);
+
+    Oracle oracle(dataset, errorProbability);
+    ItemIndexSeq result;
+    auto beforeTime = std::chrono::steady_clock::now();
+    fullSkyline(oracle, tolerance, result);
+    auto afterTime = std::chrono::steady_clock::now();
+
+    std::sort(result.begin(), result.end());
+    writeSkyline(output, result);
+
+    auto runningTime = std::chrono::duration_cast<std::chrono::milliseconds>(afterTime - beforeTime).count();
+    std::cout << runningTime << " " << oracle.comparisonCount() << std::endl;
+
+    return EXIT_SUCCESS;
+}
 
 Oracle::Oracle(const Dataset& dataset, double errorProbability)
         : dataset_(dataset), errorProbability_(errorProbability), rng_(std::random_device()()), comparisonCount_(0) {
@@ -89,18 +133,18 @@ ternary lessLexNotDominated(Oracle& oracle, item_index i, item_index j, const It
     if (dominatedByAny(oracle, i, c, tolerance)) {
         if (dominatedByAny(oracle, j, c, tolerance)) {
             // Both items are dominated, there is no ordering for them.
-            return TERNARY_UNKNOWN;
+            return ternary::unknown;
         } else {
             // Item i is dominated, item j is NOT dominated: i < j
-            return TERNARY_TRUE;
+            return ternary::true_;
         }
     } else {
         if (dominatedByAny(oracle, j, c, tolerance)) {
             // Item i is NOT dominated, item j is dominated: i > j
-            return TERNARY_FALSE;
+            return ternary::false_;
         } else {
             // Both items i and j are not dominated: the result is determined by lexicographic ordering.
-            return lessLex(oracle, i, j, tolerance) ? TERNARY_TRUE : TERNARY_FALSE;
+            return lessLex(oracle, i, j, tolerance) ? ternary::true_ : ternary::false_;
         }
     }
 }
@@ -117,17 +161,14 @@ item_index max2LexNotDominated(Oracle& oracle, item_index i, item_index j, const
             return i;
         } else {
             switch (lessLexNotDominated(oracle, i, j, c, tolerance)) {
-                case TERNARY_TRUE: {
+                case ternary::true_: {
                     return j;
                 }
-                case TERNARY_FALSE: {
+                case ternary::false_: {
                     return i;
                 }
-                case TERNARY_UNKNOWN: {
+                case ternary::unknown: {
                     return NULL_ITEM_INDEX;
-                }
-                default: {
-                    throw std::logic_error("Invalid value for ternary type");
                 }
             }
         }
@@ -169,10 +210,6 @@ item_index maxLexNotDominated(Oracle& oracle, const ItemIndexSeq& s, const ItemI
     }
     // The last group may be smaller.
     smax[i] = max4LexNotDominated(oracle, s, 4*i, s.size() - 4*i, c, tolerance);
-    // for (auto& x : smax) {
-    //     std::cout << "smax " << x << std::endl;
-    // }
-    // std::cout << std::endl;
     return maxLexNotDominated(oracle, smax, c, tolerance);
 }
 
@@ -180,7 +217,6 @@ void skySample(Oracle& oracle, const ItemIndexSeq& s, unsigned long n, double to
     result.clear();
     for (unsigned long i = 0; i < n; i++) {
         item_index z = maxLexNotDominated(oracle, s, result, tolerance/n);
-        std::cout << "z: " << z << std::endl << std::endl;
         if (z == NULL_ITEM_INDEX) {
             return;
         }
@@ -208,35 +244,4 @@ void fullSkyline(Oracle& oracle, double tolerance, ItemIndexSeq& result) {
     ItemIndexSeq s(oracle.itemCount());
     std::iota(s.begin(), s.end(), 0);
     skyline(oracle, s, tolerance, result);
-}
-
-void noislessSkyline(const Dataset& dataset, ItemIndexSeq& result) {
-    item_dimension d = dataset[0].size();
-    result.clear();
-    for (item_index i = 0; i < dataset.size(); i++) {
-        bool inSkyline = true;
-        // Try to find item j that dominates item i.
-        for (item_index j = 0; j < dataset.size(); j++) {
-            bool lt = false;
-            item_dimension k = 0;
-            for (; k < d; k++) {
-                if (dataset[i][k] < dataset[j][k]) {
-                    // Item i is less than item j on at least one dimension.
-                    lt = true;
-                } else if (dataset[i][k] > dataset[j][k]) {
-                    // Item i is not dominated by item j.
-                    break;
-                }
-            }
-            if (k == d && lt) {
-                // and there are no dimensions on which item i is greater than item j.
-                // Item i is less than item j on at least one dimension,
-                inSkyline = false;
-                break;
-            }
-        }
-        if (inSkyline) {
-            result.push_back(i);
-        }
-    }
 }
