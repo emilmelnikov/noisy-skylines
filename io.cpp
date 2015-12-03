@@ -16,10 +16,10 @@ void readDataset(std::istream& in, Dataset& dataset) {
         }
 
         dataset.push_back(Item());
-        std::stringstream valuestream(line);
-        while (!valuestream.eof()) {
-            item_attribute value;
-            valuestream >> value;
+        std::stringstream colstream(line);
+        std::string col;
+        while (std::getline(colstream, col, ',')) {
+            item_attribute value = string_to_item_attribute(col);
             dataset.back().push_back(value);
         }
     }

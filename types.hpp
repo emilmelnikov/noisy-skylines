@@ -2,6 +2,7 @@
 #define TYPES_HPP_
 
 #include <limits>
+#include <string>
 #include <vector>
 
 /**
@@ -37,5 +38,7 @@ enum class ternary {
     false_ = 1,
     true_ = 2,
 };
+
+#define string_to_item_attribute(s) (std::stod((s)))
 
 #endif // TYPES_HPP_

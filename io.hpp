@@ -11,12 +11,12 @@
 #include "types.hpp"
 
 /**
- * Read dataset from a file; values are in a tab-separated values format (compatible with CSV).
+ * Read dataset from a CSV file.
  */
 void readDataset(std::istream& in, Dataset& dataset);
 
 /**
- * Write skyline indices to a file; skyline is in tab-separated values format (compatible with CSV).
+ * Write skyline indices to a CSV file.
  */
 void writeSkyline(std::ostream& out, const ItemIndexSeq& skyline);
 
