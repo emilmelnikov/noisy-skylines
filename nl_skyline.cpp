@@ -53,8 +53,8 @@ void nlSkyline(const Dataset& dataset, ItemIndexSeq& result) {
                 }
             }
             if (k == d && lt) {
-                // and there are no dimensions on which item i is greater than item j.
                 // Item i is less than item j on at least one dimension,
+                // and there are no dimensions on which item i is greater than item j.
                 inSkyline = false;
                 break;
             }

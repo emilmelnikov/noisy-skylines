@@ -9,22 +9,22 @@
  */
 
 /** Type of the individual component in an item. */
-typedef double item_attribute;
+using item_attribute = double;
 
 /** Item in a multi-dimensional space. */
-typedef std::vector<item_attribute> Item;
+using Item = std::vector<item_attribute>;
 
 /** Dimension index for an item. */
-typedef Item::size_type item_dimension;
+using item_dimension = Item::size_type;
 
 /** A set of values for which the skyline should be computed. */
-typedef std::vector<Item> Dataset;
+using Dataset = std::vector<Item>;
 
 /** Index for items in a dataset. */
-typedef Dataset::size_type item_index;
+using item_index = Dataset::size_type;
 
 /** A set of item indices, the subset of item indices in the dataset. */
-typedef std::vector<item_index> ItemIndexSeq;
+using ItemIndexSeq = std::vector<item_index>;
 
 enum {
     /** Representation of non-existent item index. */
