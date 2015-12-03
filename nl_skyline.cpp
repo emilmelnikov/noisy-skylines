@@ -8,6 +8,8 @@
 #include "types.hpp"
 #include "io.hpp"
 
+static int comparisonCount = 0;
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " input output" << std::endl;
@@ -29,7 +31,7 @@ int main(int argc, char **argv) {
     writeSkyline(output, result);
 
     auto runningTime = std::chrono::duration_cast<std::chrono::milliseconds>(afterTime - beforeTime).count();
-    std::cout << runningTime << std::endl;
+    std::cout << runningTime << " " << comparisonCount << std::endl;
 
     return EXIT_SUCCESS;
 }
@@ -46,9 +48,11 @@ void nlSkyline(const Dataset& dataset, ItemIndexSeq& result) {
             for (; k < d; k++) {
                 if (dataset[i][k] < dataset[j][k]) {
                     // Item i is less than item j on at least one dimension.
+                    comparisonCount += 1;
                     lt = true;
                 } else if (dataset[i][k] > dataset[j][k]) {
                     // Item i is not dominated by item j.
+                    comparisonCount += 2;
                     break;
                 }
             }
