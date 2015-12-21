@@ -9,59 +9,46 @@ import argparse
 import numpy as np
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        '-n',
-        '--nitems',
-        type=int,
-        help='number of items to generate; default is 100',
-        default=100,
-    )
-    ap.add_argument(
-        '-d',
-        '--dimensions',
-        type=int,
-        help='number of dimensions for each item; default is 2',
-        default=2,
-    )
-    ap.add_argument(
-        '-o',
-        '--output',
-        type=str,
-        help='name of the output file; default is "dataset.csv"',
-        default='dataset.csv',
-    )
-    ap.add_argument(
-        '-f',
-        '--from',
-        type=int,
-        help='lower bound of the value range; default is 0',
-        default=0,
-    )
-    ap.add_argument(
-        '-t',
-        '--to',
-        type=int,
-        help='upper bound of the value range; default is 99',
-        default=99,
-    )
-    ap.add_argument(
-        '-c',
-        '--correlation',
-        type=float,
-        help='correlation coefficient for the data points; default is 0.0',
-        default=0.0,
-    )
-    args = ap.parse_args()
-    # Since 'from' is a Python keyword, get an argument with some trickery.
-    data = np.random.randint(
-        vars(args)['from'],
-        args.to,
-        size=(args.nitems, args.dimensions),
-    )
-    np.savetxt(args.output, data, delimiter='\t', fmt='%d')
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument(
+    'nitems',
+    type=int,
+    help='number of items to generate',
+)
+ap.add_argument(
+    'dimensions',
+    type=int,
+    help='number of dimensions in each generated item',
+)
+ap.add_argument(
+    '-f',
+    '--file',
+    type=str,
+    help='name of output file; default is "dataset.bin"',
+    default='dataset.bin'
+)
+ap_corr_group = ap.add_mutually_exclusive_group(required=True)
+ap_corr_group.add_argument(
+    '-i',
+    '--independent',
+    action='store_true',
+    help='generate independent dataset',
+)
+ap_corr_group.add_argument(
+    '-c',
+    '--correlated',
+    action='store_true',
+    help='generate correlated dataset',
+)
+ap_corr_group.add_argument(
+    '-a',
+    '--anticorrelated',
+    action='store_true',
+    help='generate anticorrelated dataset',
+)
+args = ap.parse_args()
 
-
-if __name__ == '__main__':
-    main()
+if args.independent:
+    dataset = np.random.rand(args.nitems, args.dimensions)
+    dataset = dataset.astype(np.float64)
+    dataset.tofile(args.file)

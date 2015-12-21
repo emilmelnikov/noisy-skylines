@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(skyline)
 
-set(FLAGS -std=c++11 -Weverything -pedantic -Wno-c++98-compat-pedantic -Wno-padded)
-set(COMMON_FILES io.cpp io.hpp types.hpp)
+set(FLAGS -Weverything -pedantic -Werror -std=c++11 -Wno-c++98-compat-pedantic -Wno-padded)
+set(COMMON_FILES common.cpp common.hpp)
 
-add_executable(noisy_skyline ${COMMON_FILES} noisy_skyline.cpp noisy_skyline.hpp)
-target_compile_options(noisy_skyline PUBLIC ${FLAGS})
+add_executable(nestedloops ${COMMON_FILES} nestedloops.cpp)
+target_compile_options(nestedloops PUBLIC ${FLAGS})
 
-add_executable(nl_skyline ${COMMON_FILES} nl_skyline.cpp nl_skyline.hpp)
-target_compile_options(nl_skyline PUBLIC ${FLAGS})
+add_executable(noisless ${COMMON_FILES} noisless.cpp)
+target_compile_options(noisless PUBLIC ${FLAGS})
 
-add_executable(noisless_skyline ${COMMON_FILES} noisless_skyline.cpp noisless_skyline.hpp)
-target_compile_options(noisless_skyline PUBLIC ${FLAGS})
+add_executable(noisy ${COMMON_FILES} noisy.cpp)
+target_compile_options(noisy PUBLIC ${FLAGS})
